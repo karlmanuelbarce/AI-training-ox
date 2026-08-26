@@ -44,10 +44,10 @@ export function AuditTable({ logs }: AuditTableProps) {
           {logs.map((log) => (
             <tr key={log.id} className="hover:bg-neutral-50">
               <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-neutral-900">
-                {log.leaveRequest.userId}
+                {log.leaveRequest.user.name}
               </td>
               <td className="whitespace-nowrap px-4 py-4 text-sm text-neutral-500">
-                {log.leaveRequest.leaveTypeId}
+                {log.leaveRequest.leaveType.name}
               </td>
               <td className="whitespace-nowrap px-4 py-4 text-sm text-neutral-500">
                 {formatDate(log.leaveRequest.startDate)} -{' '}

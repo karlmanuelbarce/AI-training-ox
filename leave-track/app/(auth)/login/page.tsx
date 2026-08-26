@@ -15,10 +15,18 @@ const roleOptions = [
   { value: 'hr_admin', label: 'HR Admin' },
 ];
 
+function isValidRedirect(url: string): boolean {
+  if (!url.startsWith('/') || url.startsWith('//') || url.includes('://')) {
+    return false;
+  }
+  return true;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const rawRedirect = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = isValidRedirect(rawRedirect) ? rawRedirect : '/dashboard';
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('employee');

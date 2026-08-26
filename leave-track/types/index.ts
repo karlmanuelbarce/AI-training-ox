@@ -82,6 +82,6 @@ export interface LeaveBalanceWithDetails extends LeaveBalance {
 }
 
 export interface AuditLogWithDetails extends AuditLog {
-  leaveRequest: LeaveRequest;
+  leaveRequest: LeaveRequestWithDetails;
   actor: Pick<User, 'id' | 'name'>;
 }
