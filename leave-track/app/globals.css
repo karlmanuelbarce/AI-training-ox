@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: hsl(230, 100%, 97%);
+  --color-primary-100: hsl(230, 100%, 94%);
+  --color-primary-200: hsl(230, 100%, 87%);
+  --color-primary-300: hsl(230, 100%, 77%);
+  --color-primary-400: hsl(230, 100%, 65%);
+  --color-primary-500: hsl(230, 100%, 55%);
+  --color-primary-600: hsl(230, 100%, 45%);
+  --color-primary-700: hsl(230, 100%, 38%);
+  --color-primary-800: hsl(230, 100%, 30%);
+  --color-primary-900: hsl(230, 100%, 22%);
+
+  --color-success-50: hsl(142, 100%, 97%);
+  --color-success-100: hsl(142, 100%, 94%);
+  --color-success-500: hsl(142, 71%, 45%);
+  --color-success-600: hsl(142, 71%, 35%);
+
+  --color-warning-50: hsl(38, 100%, 97%);
+  --color-warning-100: hsl(38, 100%, 94%);
+  --color-warning-500: hsl(38, 92%, 50%);
+
+  --color-error-50: hsl(0, 100%, 97%);
+  --color-error-100: hsl(0, 100%, 94%);
+  --color-error-500: hsl(0, 84%, 60%);
+  --color-error-600: hsl(0, 84%, 50%);
+
+  --color-neutral-50: hsl(210, 40%, 98%);
+  --color-neutral-100: hsl(210, 40%, 96%);
+  --color-neutral-200: hsl(214, 32%, 91%);
+  --color-neutral-300: hsl(213, 27%, 84%);
+  --color-neutral-400: hsl(215, 20%, 65%);
+  --color-neutral-500: hsl(215, 16%, 47%);
+  --color-neutral-600: hsl(215, 19%, 35%);
+  --color-neutral-700: hsl(215, 25%, 27%);
+  --color-neutral-800: hsl(217, 33%, 17%);
+  --color-neutral-900: hsl(222, 47%, 11%);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-neutral-200;
+  }
+  body {
+    @apply bg-white text-neutral-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-150;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 shadow-sm hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-150;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-150;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-lg bg-error-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-error-500 focus:outline-none focus:ring-2 focus:ring-error-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-150;
+  }
+
+  .input {
+    @apply block w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-50 transition-colors duration-150;
+  }
+
+  .input-error {
+    @apply border-error-500 focus:border-error-500 focus:ring-error-500;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-neutral-700 mb-1.5;
+  }
+
+  .card {
+    @apply rounded-xl border border-neutral-200 bg-white shadow-md;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-600;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center rounded-full bg-warning-50 px-2.5 py-0.5 text-xs font-medium text-warning-500;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center rounded-full bg-error-50 px-2.5 py-0.5 text-xs font-medium text-error-600;
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600;
+  }
+}

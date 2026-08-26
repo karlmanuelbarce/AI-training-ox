@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  employee
+  manager
+  hr_admin
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  email     String    @unique
+  role      UserRole  @default(employee)
+  managerId String?   @map("manager_id") @db.Uuid
+  manager   User?     @relation("ManagerReports", fields: [managerId], references: [id])
+  reports   User[]    @relation("ManagerReports")
+  policies  LeavePolicy[]
+  balances  LeaveBalance[]
+  requests  LeaveRequest[]
+  decidedRequests LeaveRequest[] @relation("DecidedRequests")
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model LeaveType {
+  id            String         @id @default(uuid()) @db.Uuid
+  name          String
+  tracksBalance Boolean        @default(true) @map("tracks_balance")
+  policies      LeavePolicy[]
+  balances      LeaveBalance[]
+  requests      LeaveRequest[]
+
+  @@map("leave_types")
+}
+
+model LeavePolicy {
+  id               String     @id @default(uuid()) @db.Uuid
+  userId           String     @map("user_id") @db.Uuid
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveTypeId      String     @map("leave_type_id") @db.Uuid
+  leaveType        LeaveType  @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  accrualPerMonth  Decimal    @map("accrual_per_month") @db.Decimal(5, 2)
+
+  @@unique([userId, leaveTypeId])
+  @@map("leave_policies")
+}
+
+model LeaveBalance {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveTypeId String    @map("leave_type_id") @db.Uuid
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  balance     Decimal   @default(0) @db.Decimal(5, 2)
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+
+  @@unique([userId, leaveTypeId])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String      @map("user_id") @db.Uuid
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveTypeId  String      @map("leave_type_id") @db.Uuid
+  leaveType    LeaveType   @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  startDate    DateTime    @map("start_date") @db.Date
+  endDate      DateTime    @map("end_date") @db.Date
+  reason       String?
+  status       LeaveStatus @default(pending)
+  decidedBy    String?     @map("decided_by") @db.Uuid
+  decidedUser  User?       @relation("DecidedRequests", fields: [decidedBy], references: [id])
+  decidedAt    DateTime?   @map("decided_at")
+  isDeleted    Boolean     @default(false) @map("is_deleted")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  auditLogs    AuditLog[]
+
+  @@map("leave_requests")
+}
+
+model AuditLog {
+  id              String      @id @default(uuid()) @db.Uuid
+  leaveRequestId  String      @map("leave_request_id") @db.Uuid
+  leaveRequest    LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  actorId         String      @map("actor_id") @db.Uuid
+  actor           User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  action          String
+  occurredAt      DateTime    @default(now()) @map("occurred_at")
+
+  @@map("audit_log")
+}
