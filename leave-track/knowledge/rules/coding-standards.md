@@ -25,6 +25,14 @@
 - Always filter `is_deleted = false` for leave_requests
 - Enforce `manager_id` filter in queries, not application logic
 - Use transactions for multi-step operations
+- Audit/decision reports read `status`, `decided_by`, `decided_at` from
+  `leave_requests` (with `is_deleted = false`), NOT from `audit_log` —
+  `audit_log` only stores action/actor/occurred_at and lacks decision fields.
+
+## API Authorization
+- HR-admin-only endpoints (e.g. `GET /api/audit/:userId`) enforce
+  `session.role === 'hr_admin'` and 404 when the target user does not exist,
+  matching the arch-declared US-05 auth model.
 
 ## Testing
 - Write unit tests for utilities and helpers
