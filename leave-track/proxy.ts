@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 const MOCK_ROLE_COOKIE = 'mock-role';
 
-const publicPaths = ['/login', '/api/health', '/api/mock-login'];
+const publicPaths = ['/login', '/api/health', '/api/mock-login', '/api/jobs'];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
