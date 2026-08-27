@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { UserRole, Session } from '@/types';
 
 const MOCK_ROLE_COOKIE = 'mock-role';
+const MOCK_USER_COOKIE = 'mock-user-id';
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
 
 export async function getMockSession(): Promise<Session | null> {
@@ -12,20 +13,28 @@ export async function getMockSession(): Promise<Session | null> {
 
   const cookieStore = await cookies();
   const role = cookieStore.get(MOCK_ROLE_COOKIE)?.value;
+  const userId = cookieStore.get(MOCK_USER_COOKIE)?.value;
 
-  if (!role || !isValidRole(role)) {
+  if (!role || !isValidRole(role) || !userId) {
     return null;
   }
 
   return {
-    userId: 'mock-user-id',
+    userId,
     role: role as UserRole,
   };
 }
 
-export async function setMockSession(role: UserRole): Promise<void> {
+export async function setMockSession(role: UserRole, userId: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(MOCK_ROLE_COOKIE, role, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_DURATION / 1000,
+  });
+  cookieStore.set(MOCK_USER_COOKIE, userId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -37,11 +46,19 @@ export async function setMockSession(role: UserRole): Promise<void> {
 export async function clearMockSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(MOCK_ROLE_COOKIE);
+  cookieStore.delete(MOCK_USER_COOKIE);
 }
 
-export function createMockLoginResponse(role: UserRole): NextResponse {
+export function createMockLoginResponse(role: UserRole, userId: string): NextResponse {
   const response = NextResponse.json({ success: true, data: { role } });
   response.cookies.set(MOCK_ROLE_COOKIE, role, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_DURATION / 1000,
+  });
+  response.cookies.set(MOCK_USER_COOKIE, userId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

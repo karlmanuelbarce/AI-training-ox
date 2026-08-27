@@ -33,6 +33,36 @@ export async function GET(request: Request) {
       return createSuccessResponse(requests);
     }
 
+    if (scope === 'team') {
+      const session = await getMockSession();
+      if (!session) {
+        return createErrorResponse(ERROR_CODES.UNAUTHORIZED, 'Authentication required');
+      }
+
+      if (session.role !== 'manager' && session.role !== 'hr_admin') {
+        return createErrorResponse(ERROR_CODES.FORBIDDEN, 'Only managers can view team requests');
+      }
+
+      const user = await resolveUser(session);
+      if (!user) {
+        return createErrorResponse(ERROR_CODES.INTERNAL_ERROR, 'User not found');
+      }
+
+      const requests = await prisma.leaveRequest.findMany({
+        where: {
+          user: { managerId: user.id },
+          isDeleted: false,
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          leaveType: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return createSuccessResponse(requests);
+    }
+
     const leaveTypes = await prisma.leaveType.findMany({
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
@@ -45,9 +75,6 @@ export async function GET(request: Request) {
 }
 
 async function resolveUser(session: { userId: string; role: string }) {
-  if (process.env.MOCK_AUTH_ENABLED === 'true') {
-    return prisma.user.findFirst({ where: { role: session.role as 'employee' | 'manager' | 'hr_admin' } });
-  }
   return prisma.user.findUnique({ where: { id: session.userId } });
 }
 
@@ -124,11 +151,7 @@ export async function POST(request: Request) {
     }
 
     let user;
-    if (process.env.MOCK_AUTH_ENABLED === 'true') {
-      user = await prisma.user.findFirst({ where: { role: session.role } });
-    } else {
-      user = await prisma.user.findUnique({ where: { id: session.userId } });
-    }
+    user = await prisma.user.findUnique({ where: { id: session.userId } });
 
     if (!user) {
       return createErrorResponse(ERROR_CODES.INTERNAL_ERROR, 'User not found');

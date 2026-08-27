@@ -76,6 +76,11 @@ export interface LeaveRequestWithDetails extends LeaveRequest {
   decidedByUser: Pick<User, 'id' | 'name'> | null;
 }
 
+export interface LeaveRequestWithUser extends LeaveRequest {
+  user: Pick<User, 'id' | 'name' | 'email'>;
+  leaveType: Pick<LeaveType, 'id' | 'name'>;
+}
+
 export interface LeaveBalanceWithDetails extends LeaveBalance {
   leaveType: LeaveType;
   pendingBalance: number;
