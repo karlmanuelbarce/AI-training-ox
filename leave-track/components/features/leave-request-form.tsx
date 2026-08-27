@@ -59,9 +59,7 @@ export function LeaveRequestForm({ leaveTypes, onSubmit }: LeaveRequestFormProps
             options={leaveTypeOptions}
             placeholder="Select leave type"
             value={formData.leaveTypeId}
-            onChange={(e) =>
-              setFormData({ ...formData, leaveTypeId: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, leaveTypeId: e.target.value })}
             required
           />
 
@@ -70,18 +68,14 @@ export function LeaveRequestForm({ leaveTypes, onSubmit }: LeaveRequestFormProps
               label="Start Date"
               type="date"
               value={formData.startDate}
-              onChange={(e) =>
-                setFormData({ ...formData, startDate: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               required
             />
             <Input
               label="End Date"
               type="date"
               value={formData.endDate}
-              onChange={(e) =>
-                setFormData({ ...formData, endDate: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               required
             />
           </div>
@@ -95,9 +89,7 @@ export function LeaveRequestForm({ leaveTypes, onSubmit }: LeaveRequestFormProps
               rows={4}
               placeholder="Provide a reason for your leave request..."
               value={formData.reason}
-              onChange={(e) =>
-                setFormData({ ...formData, reason: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
             />
           </div>
 
@@ -108,13 +100,19 @@ export function LeaveRequestForm({ leaveTypes, onSubmit }: LeaveRequestFormProps
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-4">
-            <Button type="button" variant="secondary" onClick={() => setFormData({
-              leaveTypeId: '',
-              startDate: '',
-              endDate: '',
-              reason: '',
-            })}>
+          <div className="flex flex-wrap items-center justify-end gap-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() =>
+                setFormData({
+                  leaveTypeId: '',
+                  startDate: '',
+                  endDate: '',
+                  reason: '',
+                })
+              }
+            >
               Clear
             </Button>
             <Button type="submit" loading={loading}>

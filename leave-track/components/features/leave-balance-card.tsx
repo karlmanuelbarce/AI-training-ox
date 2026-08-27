@@ -28,9 +28,7 @@ export function LeaveBalanceCard({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-neutral-900">{leaveType}</h3>
-            {accrualRate && (
-              <p className="text-sm text-neutral-500">+{accrualRate} days/month</p>
-            )}
+            {accrualRate && <p className="text-sm text-neutral-500">+{accrualRate} days/month</p>}
           </div>
         </div>
 
@@ -43,12 +41,12 @@ export function LeaveBalanceCard({
           </div>
 
           {pending > 0 && (
-            <div className="flex items-center justify-between rounded-lg bg-warning-50 p-3">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-warning-500" />
-                <span className="text-sm text-warning-500">Pending</span>
+            <div className="flex items-center justify-between gap-2 rounded-lg bg-warning-50 p-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <TrendingDown className="h-4 w-4 shrink-0 text-warning-500" />
+                <span className="truncate text-sm text-warning-500">Pending</span>
               </div>
-              <span className="font-medium text-warning-500">-{pending}</span>
+              <span className="shrink-0 font-medium text-warning-500">-{pending}</span>
             </div>
           )}
 
