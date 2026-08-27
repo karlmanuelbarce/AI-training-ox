@@ -22,9 +22,9 @@ export default function NewLeaveRequestPage() {
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
-  const [leaveTypeOptions, setLeaveTypeOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
+  const [leaveTypeOptions, setLeaveTypeOptions] = useState<Array<{ value: string; label: string }>>(
+    []
+  );
   const [loadError, setLoadError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -146,9 +146,7 @@ export default function NewLeaveRequestPage() {
               options={leaveTypeOptions}
               placeholder="Select leave type"
               value={formData.leaveTypeId}
-              onChange={(e) =>
-                setFormData({ ...formData, leaveTypeId: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, leaveTypeId: e.target.value })}
               error={validationErrors.leaveTypeId}
               required
             />
@@ -158,9 +156,7 @@ export default function NewLeaveRequestPage() {
                 label="Start Date"
                 type="date"
                 value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 error={validationErrors.startDate}
                 required
               />
@@ -168,9 +164,7 @@ export default function NewLeaveRequestPage() {
                 label="End Date"
                 type="date"
                 value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 error={validationErrors.endDate}
                 required
               />
@@ -186,9 +180,7 @@ export default function NewLeaveRequestPage() {
                 rows={4}
                 placeholder="Provide a reason for your leave request..."
                 value={formData.reason}
-                onChange={(e) =>
-                  setFormData({ ...formData, reason: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 maxLength={500}
               />
               {validationErrors.reason && (
@@ -229,12 +221,8 @@ export default function NewLeaveRequestPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-4">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => router.back()}
-              >
+            <div className="flex flex-wrap items-center justify-end gap-4">
+              <Button type="button" variant="secondary" onClick={() => router.back()}>
                 Cancel
               </Button>
               <Button type="submit" loading={loading} disabled={submitted}>
