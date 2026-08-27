@@ -91,6 +91,22 @@ export interface AuditLogWithDetails extends AuditLog {
   actor: Pick<User, 'id' | 'name'>;
 }
 
+export interface AuditReportEntry {
+  id: string;
+  userId: string;
+  leaveTypeId: string;
+  leaveType: Pick<LeaveType, 'id' | 'name'>;
+  startDate: string;
+  endDate: string;
+  reason: string | null;
+  status: LeaveStatus;
+  decidedBy: string | null;
+  decidedUser: Pick<User, 'id' | 'name'> | null;
+  decidedAt: string | null;
+  isDeleted: boolean;
+  createdAt: string;
+}
+
 export interface CreateLeaveRequestInput {
   leaveTypeId: string;
   startDate: string;
