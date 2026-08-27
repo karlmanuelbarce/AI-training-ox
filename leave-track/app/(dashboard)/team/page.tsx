@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function TeamQueuePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchRequests = useCallback(() => {
     fetch('/api/leave-requests?scope=team')
       .then((res) => res.json())
       .then((data) => {
@@ -38,6 +38,46 @@ export default function TeamQueuePage() {
       .catch(() => setError('Failed to load team requests'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  const handleDecision = async (id: string, decision: 'approved' | 'rejected', reason?: string) => {
+    try {
+      const res = await fetch(`/api/leave-requests/${id}/decision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, reason }),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.error?.message || 'Failed to process decision');
+        return;
+      }
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: decision, decidedBy: 'me', decidedAt: new Date().toISOString() } : r
+        )
+      );
+    } catch {
+      setError('Failed to process decision');
+    }
+  };
+
+  const handleApprove = (id: string) => {
+    handleDecision(id, 'approved');
+  };
+
+  const handleReject = (id: string) => {
+    const reason = window.prompt('Reason for rejection:');
+    if (reason === null || reason.trim().length === 0) {
+      return;
+    }
+    handleDecision(id, 'rejected', reason.trim());
+  };
 
   if (loading) return <Loading text="Loading team requests..." />;
   if (error) return <div className="text-error-600">{error}</div>;
@@ -90,6 +130,7 @@ export default function TeamQueuePage() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        onClick={() => handleReject(request.id)}
                         className="text-error-600 hover:bg-error-50 hover:text-error-700"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
@@ -97,6 +138,7 @@ export default function TeamQueuePage() {
                       </Button>
                       <Button
                         size="sm"
+                        onClick={() => handleApprove(request.id)}
                         className="bg-success-600 hover:bg-success-500"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
