@@ -85,3 +85,15 @@ export interface AuditLogWithDetails extends AuditLog {
   leaveRequest: LeaveRequestWithDetails;
   actor: Pick<User, 'id' | 'name'>;
 }
+
+export interface CreateLeaveRequestInput {
+  leaveTypeId: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+}
+
+export interface LeaveRequestResponse {
+  request: LeaveRequest;
+  warning: string | null;
+}

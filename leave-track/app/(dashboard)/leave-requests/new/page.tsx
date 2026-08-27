@@ -1,18 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { AlertCircle } from 'lucide-react';
-
-const leaveTypeOptions = [
-  { value: 'lt-1', label: 'Vacation' },
-  { value: 'lt-2', label: 'Sick' },
-  { value: 'lt-3', label: 'Unpaid' },
-];
+import { AlertCircle, AlertTriangle } from 'lucide-react';
+import type { CreateLeaveRequestInput } from '@/types';
 
 interface ValidationErrors {
   leaveTypeId?: string;
@@ -25,14 +20,34 @@ export default function NewLeaveRequestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [leaveTypeOptions, setLeaveTypeOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateLeaveRequestInput>({
     leaveTypeId: '',
     startDate: '',
     endDate: '',
     reason: '',
   });
+
+  useEffect(() => {
+    fetch('/api/leave-requests')
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success) {
+          setLeaveTypeOptions(
+            result.data.map((lt: { id: string; name: string }) => ({
+              value: lt.id,
+              label: lt.name,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
@@ -69,6 +84,7 @@ export default function NewLeaveRequestPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setWarning('');
 
     if (!validateForm()) {
       return;
@@ -77,8 +93,24 @@ export default function NewLeaveRequestPage() {
     setLoading(true);
 
     try {
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch('/api/leave-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error.message);
+        return;
+      }
+
+      if (result.data.warning) {
+        setWarning(result.data.warning);
+        return;
+      }
+
       router.push('/leave-requests');
     } catch {
       setError('Failed to submit request. Please try again.');
@@ -164,6 +196,22 @@ export default function NewLeaveRequestPage() {
               <div className="flex items-center gap-2 rounded-lg bg-error-50 p-4 text-sm text-error-600">
                 <AlertCircle className="h-5 w-5" />
                 {error}
+              </div>
+            )}
+
+            {warning && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 rounded-lg bg-warning-50 p-4 text-sm text-warning-500">
+                  <AlertTriangle className="h-5 w-5" />
+                  {warning}
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => router.push('/leave-requests')}
+                >
+                  View My Requests
+                </Button>
               </div>
             )}
 
