@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { setMockSession, clearMockSession } from '@/lib/auth';
 import { createErrorResponse, createSuccessResponse } from '@/lib/errors';
+import { prisma } from '@/lib/prisma';
 import type { UserRole } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, role } = body;
+    const { action, role, email } = body;
 
     if (action === 'logout') {
       await clearMockSession();
@@ -17,7 +18,16 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('VALIDATION_ERROR', 'Invalid role provided');
     }
 
-    await setMockSession(role as UserRole);
+    if (!email || typeof email !== 'string') {
+      return createErrorResponse('VALIDATION_ERROR', 'Email is required');
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return createErrorResponse('VALIDATION_ERROR', 'User not found');
+    }
+
+    await setMockSession(role as UserRole, user.id);
 
     return createSuccessResponse({
       message: 'Logged in successfully',
