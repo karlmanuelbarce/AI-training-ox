@@ -18,7 +18,7 @@ export async function POST(
       return createErrorResponse(ERROR_CODES.UNAUTHORIZED, 'Authentication required');
     }
 
-    if (session.role !== 'manager' && session.role !== 'hr_admin') {
+    if (session.role !== 'manager') {
       return createErrorResponse(ERROR_CODES.FORBIDDEN, 'Only managers can approve or reject requests');
     }
 
@@ -87,14 +87,23 @@ export async function POST(
           },
         });
 
-        const currentBalance = Number(balance?.balance ?? 0);
-
-        if (balance) {
-          await tx.leaveBalance.update({
-            where: { id: balance.id },
-            data: { balance: currentBalance - requestedDays },
-          });
+        if (!balance) {
+          return createErrorResponse(ERROR_CODES.VALIDATION_ERROR, 'No balance record found for this leave type');
         }
+
+        const currentBalance = Number(balance.balance);
+
+        if (currentBalance < requestedDays) {
+          return createErrorResponse(
+            ERROR_CODES.VALIDATION_ERROR,
+            `Insufficient balance. ${currentBalance} day${currentBalance !== 1 ? 's' : ''} available, ${requestedDays} day${requestedDays !== 1 ? 's' : ''} requested`
+          );
+        }
+
+        await tx.leaveBalance.update({
+          where: { id: balance.id },
+          data: { balance: currentBalance - requestedDays },
+        });
       }
 
       const updated = await tx.leaveRequest.update({
