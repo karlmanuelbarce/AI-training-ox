@@ -25,6 +25,8 @@ export default function NewLeaveRequestPage() {
   const [leaveTypeOptions, setLeaveTypeOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
+  const [loadError, setLoadError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   const [formData, setFormData] = useState<CreateLeaveRequestInput>({
     leaveTypeId: '',
@@ -44,9 +46,13 @@ export default function NewLeaveRequestPage() {
               label: lt.name,
             }))
           );
+        } else {
+          setLoadError(result.error?.message || 'Failed to load leave types');
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setLoadError('Unable to connect to the server. Please try again later.');
+      });
   }, []);
 
   const validateForm = (): boolean => {
@@ -108,6 +114,7 @@ export default function NewLeaveRequestPage() {
 
       if (result.data.warning) {
         setWarning(result.data.warning);
+        setSubmitted(true);
         return;
       }
 
@@ -215,6 +222,13 @@ export default function NewLeaveRequestPage() {
               </div>
             )}
 
+            {loadError && (
+              <div className="flex items-center gap-2 rounded-lg bg-error-50 p-4 text-sm text-error-600">
+                <AlertCircle className="h-5 w-5" />
+                {loadError}
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-4">
               <Button
                 type="button"
@@ -223,7 +237,7 @@ export default function NewLeaveRequestPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" loading={loading}>
+              <Button type="submit" loading={loading} disabled={submitted}>
                 Submit Request
               </Button>
             </div>
