@@ -72,6 +72,14 @@ model LeaveBalance {
   @@map("leave_balances")
 }
 
+model AccrualRun {
+  id     String   @id @default(uuid()) @db.Uuid
+  period String   @unique
+  ranAt  DateTime @default(now()) @map("ran_at")
+
+  @@map("accrual_runs")
+}
+
 model LeaveRequest {
   id           String      @id @default(uuid()) @db.Uuid
   userId       String      @map("user_id") @db.Uuid
