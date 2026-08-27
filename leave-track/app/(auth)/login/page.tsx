@@ -42,7 +42,7 @@ function LoginForm() {
       const response = await fetch('/api/mock-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role }),
+        body: JSON.stringify({ email }),
       });
 
       if (!response.ok) {
