@@ -1,37 +1,86 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { LeaveBalanceCard } from '@/components/features/leave-balance-card';
+import { TrendingDown } from 'lucide-react';
+import { getMockSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { calculateDaysBetween } from '@/lib/utils';
 
-const balances = [
-  {
-    type: 'Vacation',
-    balance: 12.5,
-    pending: 5.0,
-    used: 7.5,
-    accrualRate: 1.5,
-    color: 'bg-primary-100',
-    textColor: 'text-primary-600',
-  },
-  {
-    type: 'Sick',
-    balance: 8.0,
-    pending: 0,
-    used: 4.0,
-    accrualRate: 1.0,
-    color: 'bg-success-100',
-    textColor: 'text-success-600',
-  },
-  {
-    type: 'Unpaid',
-    balance: null,
-    pending: 3.0,
-    used: 0,
-    accrualRate: null,
-    color: 'bg-neutral-100',
-    textColor: 'text-neutral-600',
-  },
-];
+async function getCurrentUser() {
+  const session = await getMockSession();
+  if (!session) return null;
 
-export default function BalancesPage() {
+  if (process.env.MOCK_AUTH_ENABLED === 'true') {
+    return prisma.user.findFirst({
+      where: { role: session.role },
+    });
+  }
+  return prisma.user.findUnique({ where: { id: session.userId } });
+}
+
+const LEAVE_TYPE_COLORS: Record<string, string> = {
+  Vacation: 'bg-primary-100',
+  Sick: 'bg-success-100',
+  Unpaid: 'bg-neutral-100',
+};
+
+export default async function BalancesPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Leave Balances</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            View your current leave balances and pending requests.
+          </p>
+        </div>
+        <Card>
+          <CardContent>
+            <div className="py-12 text-center">
+              <p className="text-sm text-neutral-500">
+                Sign in to view your leave balances.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const [balances, pendingRequests, policies, leaveTypes] = await Promise.all([
+    prisma.leaveBalance.findMany({
+      where: { userId: user.id },
+      include: { leaveType: true },
+    }),
+    prisma.leaveRequest.findMany({
+      where: { userId: user.id, status: 'pending', isDeleted: false },
+      include: { leaveType: true },
+    }),
+    prisma.leavePolicy.findMany({
+      where: { userId: user.id },
+    }),
+    prisma.leaveType.findMany({ orderBy: { name: 'asc' } }),
+  ]);
+
+  const accrualByType = new Map(policies.map((p) => [p.leaveTypeId, p.accrualPerMonth]));
+
+  const pendingByType = new Map<string, number>();
+  for (const request of pendingRequests) {
+    const days = calculateDaysBetween(
+      request.startDate.toISOString(),
+      request.endDate.toISOString()
+    );
+    pendingByType.set(
+      request.leaveTypeId,
+      (pendingByType.get(request.leaveTypeId) ?? 0) + days
+    );
+  }
+
+  const balanceByType = new Map(
+    balances.map((b) => [b.leaveTypeId, Number(b.balance)])
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -42,59 +91,58 @@ export default function BalancesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {balances.map((balance) => (
-          <Card key={balance.type}>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${balance.color}`}>
-                  <TrendingUp className={`h-6 w-6 ${balance.textColor}`} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-900">
-                    {balance.type}
-                  </h3>
-                  {balance.accrualRate && (
-                    <p className="text-sm text-neutral-500">
-                      +{balance.accrualRate} days/month
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-neutral-500">Available</span>
-                  <span className="text-2xl font-bold text-neutral-900">
-                    {balance.balance !== null ? balance.balance : 'N/A'}
-                  </span>
-                </div>
+        {leaveTypes.map((leaveType) => {
+          const tracksBalance = leaveType.tracksBalance;
+          const balance = tracksBalance ? (balanceByType.get(leaveType.id) ?? 0) : null;
+          const pending = pendingByType.get(leaveType.id) ?? 0;
+          const accrualRate = accrualByType.get(leaveType.id) ?? null;
 
-                {balance.pending > 0 && (
-                  <div className="flex items-center justify-between rounded-lg bg-warning-50 p-3">
-                    <div className="flex items-center gap-2">
-                      <TrendingDown className="h-4 w-4 text-warning-500" />
-                      <span className="text-sm text-warning-500">Pending</span>
-                    </div>
-                    <span className="font-medium text-warning-500">
-                      -{balance.pending}
-                    </span>
-                  </div>
-                )}
-
-                <div className="border-t border-neutral-200 pt-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-neutral-500">Used this year</span>
-                    <span className="font-medium text-neutral-900">
-                      {balance.used}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          return (
+            <LeaveBalanceCard
+              key={leaveType.id}
+              leaveType={leaveType.name}
+              balance={balance}
+              pending={pending}
+              accrualRate={tracksBalance ? Number(accrualRate) : null}
+              color={LEAVE_TYPE_COLORS[leaveType.name] ?? 'bg-primary-100'}
+            />
+          );
+        })}
       </div>
+
+      {pendingRequests.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-warning-500" />
+              <h2 className="text-lg font-semibold text-neutral-900">
+                Pending requests
+              </h2>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-neutral-200">
+              {pendingRequests.map((request) => (
+                <li
+                  key={request.id}
+                  className="flex items-center justify-between py-3 text-sm"
+                >
+                  <span className="font-medium text-neutral-900">
+                    {request.leaveType.name}
+                  </span>
+                  <span className="text-neutral-500">
+                    {calculateDaysBetween(
+                      request.startDate.toISOString(),
+                      request.endDate.toISOString()
+                    )}{' '}
+                    day(s) pending approval
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

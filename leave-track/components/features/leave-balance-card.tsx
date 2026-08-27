@@ -6,8 +6,8 @@ interface LeaveBalanceCardProps {
   leaveType: string;
   balance: number | null;
   pending: number;
-  used: number;
-  accrualRate: number | null;
+  used?: number;
+  accrualRate?: number | null;
   color?: string;
 }
 
@@ -52,12 +52,14 @@ export function LeaveBalanceCard({
             </div>
           )}
 
-          <div className="border-t border-neutral-200 pt-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-neutral-500">Used this year</span>
-              <span className="font-medium text-neutral-900">{used}</span>
+          {used !== undefined && (
+            <div className="border-t border-neutral-200 pt-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-neutral-500">Used this year</span>
+                <span className="font-medium text-neutral-900">{used}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>

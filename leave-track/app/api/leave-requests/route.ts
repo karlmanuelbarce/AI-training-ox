@@ -8,8 +8,31 @@ import {
 import { calculateDaysBetween } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const scope = url.searchParams.get('scope');
+
+    if (scope === 'mine') {
+      const session = await getMockSession();
+      if (!session) {
+        return createErrorResponse(ERROR_CODES.UNAUTHORIZED, 'Authentication required');
+      }
+
+      const user = await resolveUser(session);
+      if (!user) {
+        return createErrorResponse(ERROR_CODES.INTERNAL_ERROR, 'User not found');
+      }
+
+      const requests = await prisma.leaveRequest.findMany({
+        where: { userId: user.id, isDeleted: false },
+        include: { leaveType: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return createSuccessResponse(requests);
+    }
+
     const leaveTypes = await prisma.leaveType.findMany({
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
@@ -17,8 +40,15 @@ export async function GET() {
     return createSuccessResponse(leaveTypes);
   } catch (err) {
     logger.error('leave_requests.get_failed', { error: String(err) });
-    return createErrorResponse(ERROR_CODES.DATABASE_ERROR, 'Failed to fetch leave types');
+    return createErrorResponse(ERROR_CODES.DATABASE_ERROR, 'Failed to fetch leave requests');
   }
+}
+
+async function resolveUser(session: { userId: string; role: string }) {
+  if (process.env.MOCK_AUTH_ENABLED === 'true') {
+    return prisma.user.findFirst({ where: { role: session.role as 'employee' | 'manager' | 'hr_admin' } });
+  }
+  return prisma.user.findUnique({ where: { id: session.userId } });
 }
 
 export async function POST(request: Request) {
