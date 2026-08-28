@@ -9,11 +9,6 @@ async function getCurrentUser() {
   const session = await getMockSession();
   if (!session) return null;
 
-  if (process.env.MOCK_AUTH_ENABLED === 'true') {
-    return prisma.user.findFirst({
-      where: { role: session.role },
-    });
-  }
   return prisma.user.findUnique({ where: { id: session.userId } });
 }
 
